@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Users, ClipboardList, Wallet, AlertCircle } from 'lucide-react';
+import { Users, ClipboardList, AlertCircle } from 'lucide-react';
 
 export default function DashboardOverview() {
   const [stats, setStats] = useState({
@@ -38,30 +38,32 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Overview</h1>
-        <p className="text-slate-500">Welcome back, Tiffin Didi!</p>
+    <div className="space-y-10">
+      <div className="animate-in fade-in slide-in-from-top duration-700">
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Dashboard Overview</h1>
+        <p className="text-slate-500 font-medium tracking-tight">Welcome back! Here's what's happening at Kiyamaa's Kitchen today.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {cards.map((card) => {
+        {cards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="card flex items-center gap-6">
-              <div className={`p-4 rounded-xl ${card.bg} ${card.color}`}>
+            <div 
+              key={card.label} 
+              className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col gap-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 animate-in fade-in zoom-in"
+              style={{ animationDelay: `${i * 100}ms` }}
+            >
+              <div className={`p-4 rounded-2xl w-fit ${card.bg} ${card.color} shadow-sm`}>
                 <Icon className="size-8" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500">{card.label}</p>
-                <p className="text-3xl font-bold text-slate-800">{card.value}</p>
+              <div className="space-y-1">
+                <p className="text-4xl font-black text-slate-900 tracking-tighter">{card.value}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">{card.label}</p>
               </div>
             </div>
           );
         })}
       </div>
-
-      {/* Quick Actions or some charts could go here in V1.1 */}
     </div>
   );
 }

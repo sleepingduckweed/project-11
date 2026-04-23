@@ -104,64 +104,116 @@ export default function UsersPage() {
         />
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* User List - Desktop Table */}
+      <div className="hidden md:block bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
         <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase text-xs font-semibold">
+          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-black tracking-widest">
             <tr>
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">Contact</th>
-              <th className="px-6 py-4">Wallet</th>
-              <th className="px-6 py-4 text-right">Actions</th>
+              <th className="px-8 py-5">Customer</th>
+              <th className="px-8 py-5">Contact & Food</th>
+              <th className="px-8 py-5">Preferred Time</th>
+              <th className="px-8 py-5">Balance</th>
+              <th className="px-8 py-5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500"><Loader2 className="animate-spin inline-block mr-2" /> Loading users...</td></tr>
+              <tr><td colSpan={5} className="px-8 py-20 text-center text-slate-500"><Loader2 className="animate-spin inline-block size-8 text-emerald-500" /></td></tr>
             ) : filteredUsers.length === 0 ? (
-              <tr><td colSpan={4} className="px-6 py-12 text-center text-slate-500">No users found.</td></tr>
+              <tr><td colSpan={5} className="px-8 py-20 text-center text-slate-500 font-bold">No users found.</td></tr>
             ) : filteredUsers.map(user => (
               <tr key={user._id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-6 py-4">
-                  <p className="font-semibold text-slate-800">{user.name}</p>
-                  <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin className="size-3" /> {user.address}</p>
+                <td className="px-8 py-5">
+                  <div className="flex flex-col">
+                    <p className="font-black text-slate-800 text-lg">{user.name}</p>
+                    <p className="text-xs text-slate-400 flex items-center gap-1 font-medium"><MapPin className="size-3" /> {user.address}</p>
+                  </div>
                 </td>
-                <td className="px-6 py-4">
-                  <p className="text-slate-600 flex items-center gap-1"><Phone className="size-4" /> {user.phone}</p>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${user.foodPreference === 'Veg' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
-                    {user.foodPreference}
-                  </span>
+                <td className="px-8 py-5">
+                  <div className="flex flex-col gap-1.5">
+                    <p className="text-slate-600 font-bold flex items-center gap-2 tracking-tight"><Phone className="size-4" /> {user.phone}</p>
+                    <span className={`text-[10px] w-fit px-3 py-1 rounded-full font-black uppercase tracking-widest ${user.foodPreference === 'Veg' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                      {user.foodPreference}
+                    </span>
+                  </div>
                 </td>
-                <td className="px-6 py-4">
-                  <p className="text-sm font-medium text-slate-700">{user.preferredReminderTime || '09:00'}</p>
-                  <p className="text-[10px] text-slate-400">Daily Prompt</p>
+                <td className="px-8 py-5">
+                  <p className="text-sm font-black text-slate-700">{user.preferredReminderTime || '09:00'}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Daily Prompt</p>
                 </td>
-                <td className="px-6 py-4">
-                  <p className={`font-bold ${user.tiffinBalance < 2 ? 'text-red-600' : 'text-emerald-600'}`}>{user.tiffinBalance}</p>
-                  <p className="text-[10px] text-slate-400">Tiffins</p>
+                <td className="px-8 py-5">
+                  <p className={`text-xl font-black ${user.tiffinBalance < 2 ? 'text-red-600' : 'text-emerald-600'}`}>{user.tiffinBalance}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tiffins Left</p>
                 </td>
-                <td className="px-6 py-4 text-right space-x-2">
+                <td className="px-8 py-5 text-right flex items-center justify-end gap-3">
                   <button 
                     onClick={() => setRechargeUser(user)}
-                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-100"
-                    title="Recharge"
+                    className="h-10 px-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-500 hover:text-white rounded-xl transition-all font-black text-xs uppercase tracking-widest border border-emerald-100"
                   >
-                    + Add Tiffins
+                    + Recharge
                   </button>
                   <button 
                     onClick={() => setShowLedger(user)}
-                    className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors border border-slate-200"
-                    title="View Ledger"
+                    className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all border border-slate-100"
                   >
                     <History className="size-5" />
-                  </button>
-                  <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors">
-                    <Edit2 className="size-5" />
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* User List - Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {loading ? (
+           <div className="p-10 text-center"><Loader2 className="animate-spin inline-block size-8 text-emerald-500" /></div>
+        ) : filteredUsers.length === 0 ? (
+           <div className="p-10 text-center bg-white rounded-3xl border border-slate-100 font-bold text-slate-400">No users found.</div>
+        ) : (
+          filteredUsers.map(user => (
+            <div key={user._id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className="text-xl font-black text-slate-800 leading-tight">{user.name}</h3>
+                  <p className="text-xs text-slate-400 font-bold flex items-center gap-1 mt-1"><MapPin className="size-3" /> {user.address}</p>
+                </div>
+                <span className={`text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-widest shadow-sm ${user.foodPreference === 'Veg' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                  {user.foodPreference}
+                </span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                 <div className="bg-slate-50 p-4 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Balance</p>
+                    <p className={`text-2xl font-black ${user.tiffinBalance < 2 ? 'text-red-500' : 'text-emerald-600'}`}>
+                       {user.tiffinBalance} <span className="text-[10px] uppercase font-bold text-slate-400">Tiffins</span>
+                    </p>
+                 </div>
+                 <div className="bg-slate-50 p-4 rounded-2xl">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1">Prompt</p>
+                    <p className="text-xl font-black text-slate-700">{user.preferredReminderTime || '09:00'}</p>
+                 </div>
+              </div>
+
+              <div className="flex gap-3">
+                 <button 
+                   onClick={() => setRechargeUser(user)}
+                   className="flex-1 h-14 bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest shadow-lg shadow-emerald-100 active:scale-95 transition-all"
+                 >
+                   Recharge
+                 </button>
+                 <button 
+                    onClick={() => setShowLedger(user)}
+                    className="size-14 flex items-center justify-center bg-slate-50 text-slate-600 rounded-2xl active:scale-90 transition-transform"
+                 >
+                    <History className="size-6" />
+                 </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Add User Modal */}

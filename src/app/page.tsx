@@ -1,213 +1,349 @@
 'use client';
 
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Utensils, Heart, Clock, Smartphone, CheckCircle2, Star, Menu, X } from 'lucide-react';
+import { Utensils, Heart, Clock, Smartphone, CheckCircle2, Star, X, ArrowRight, MessageCircle, Globe, Camera } from 'lucide-react';
 
 export default function LandingPage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-active');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      observer.disconnect();
+    };
+  }, []);
+
+  const menuItems = [
+    { name: 'Features', href: '#features' },
+    { name: 'Our Menu', href: '#menu' },
+    { name: 'How It Works', href: '#how-it-works' },
+    { name: 'Privacy Policy', href: '/privacy' },
+    { name: 'Terms of Service', href: '/terms' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#fdfaf6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-900">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-orange-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="size-10 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-200">
-              <Utensils className="text-white size-6" />
+    <div className={`min-h-screen bg-[#fdfaf6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-900 overflow-x-hidden ${isMenuOpen ? 'h-screen overflow-hidden' : ''}`}>
+      
+      <style jsx global>{`
+        .reveal {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .reveal-delay-1 { transition-delay: 100ms; }
+        .reveal-delay-2 { transition-delay: 200ms; }
+        .reveal-delay-3 { transition-delay: 300ms; }
+        
+        .menu-item-reveal {
+          transition: transform 1.2s cubic-bezier(0.19, 1, 0.22, 1), opacity 1s ease;
+        }
+      `}</style>
+
+      {/* Classy Elegant Menu Overlay */}
+      <div className={`fixed inset-0 z-[200] transition-all duration-1000 ${isMenuOpen ? 'visible' : 'invisible pointer-events-none'}`}>
+         {/* Background Split - Elegant Slide */}
+         <div className={`absolute inset-0 bg-white/95 backdrop-blur-2xl transition-transform duration-1000 ease-[cubic-bezier(0.19,1,0.22,1)] ${isMenuOpen ? 'translate-y-0' : '-translate-y-full'}`} />
+         
+         <div className="relative h-full flex flex-col items-start justify-center p-8 md:p-24 max-w-7xl mx-auto w-full z-10">
+            <div className="flex flex-col space-y-4 md:space-y-6 w-full">
+               {menuItems.map((item, i) => (
+                  <Link 
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    style={{ transitionDelay: `${i * 80 + 400}ms` }}
+                    className={`group text-5xl md:text-8xl font-black text-slate-900 hover:text-orange-500 transition-all transform tracking-tighter w-fit overflow-hidden ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-20 opacity-0'}`}
+                  >
+                    <span className="inline-block transition-transform duration-700 group-hover:-translate-y-2">{item.name}</span>
+                    <div className="h-2 w-0 bg-orange-500 transition-all duration-500 group-hover:w-full" />
+                  </Link>
+               ))}
             </div>
-            <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent tracking-tight">Kiyamaa's Kitchen</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 font-bold text-slate-500">
-            <Link href="#features" className="hover:text-orange-500 transition-colors uppercase text-sm tracking-widest">Features</Link>
-            <Link href="#menu" className="hover:text-orange-500 transition-colors uppercase text-sm tracking-widest">Our Menu</Link>
-            <Link href="#how-it-works" className="hover:text-orange-500 transition-colors uppercase text-sm tracking-widest">How it Works</Link>
-            <Link href="/login" className="btn bg-orange-600 text-white hover:bg-orange-700 px-6 py-2 rounded-full font-bold active:scale-95 transition-all shadow-lg shadow-orange-200">
+
+            <div 
+               style={{ transitionDelay: '900ms' }}
+               className={`mt-20 flex flex-col md:flex-row items-start md:items-center gap-10 transition-all duration-1000 transform ${isMenuOpen ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
+            >
+               <Link 
+                 href="/login"
+                 onClick={() => setIsMenuOpen(false)}
+                 className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-orange-600 transition-all shadow-2xl active:scale-95"
+               >
+                 Admin Access
+               </Link>
+               
+               <div className="flex gap-6">
+                  <Link href="#" className="text-slate-400 hover:text-orange-500 transition-colors"><Camera className="size-6" /></Link>
+                  <Link href="#" className="text-slate-400 hover:text-orange-500 transition-colors"><Globe className="size-6" /></Link>
+                  <Link href="#" className="text-slate-400 hover:text-emerald-500 transition-colors"><MessageCircle className="size-6" /></Link>
+               </div>
+            </div>
+         </div>
+
+         {/* Fixed Close Button for Menu */}
+         <button 
+           onClick={() => setIsMenuOpen(false)}
+           className={`absolute top-8 right-8 size-14 flex items-center justify-center bg-slate-900 text-white rounded-full transition-all duration-700 hover:rotate-90 active:scale-90 ${isMenuOpen ? 'translate-y-0 scale-100' : 'translate-y-[-100px] scale-0'}`}
+         >
+           <X className="size-6" />
+         </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className={`fixed top-0 w-full z-[150] transition-all duration-700 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-orange-50 shadow-sm py-4' : 'bg-transparent py-8'}`}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="size-10 bg-orange-600 rounded-2xl flex items-center justify-center shadow-xl shadow-orange-100 transition-all group-hover:bg-slate-900 group-hover:-rotate-12">
+              <Utensils className="size-6 text-white" />
+            </div>
+            <span className="text-2xl font-black tracking-tighter bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent group-hover:from-orange-600 group-hover:to-orange-400 transition-all">
+              Kiyamaa's Kitchen
+            </span>
+          </Link>
+          
+          <div className="hidden md:flex items-center gap-12 font-bold">
+            {menuItems.slice(0,3).map(item => (
+              <Link key={item.name} href={item.href} className="text-slate-400 hover:text-orange-600 transition-all uppercase text-[10px] font-black tracking-[0.4em] relative group">
+                {item.name}
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-orange-500 transition-all group-hover:w-full" />
+              </Link>
+            ))}
+            <Link href="/login" className="px-8 py-3 bg-slate-900 text-white hover:bg-orange-600 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] active:scale-95 transition-all shadow-2xl shadow-slate-100 border border-slate-900">
               Admin Login
             </Link>
           </div>
-          <button className="md:hidden text-orange-600"><Menu className="size-8" /></button>
+
+          <button 
+            onClick={() => setIsMenuOpen(true)}
+            className="flex flex-col items-end gap-1.5 group p-2 hover:translate-x-1 transition-transform"
+          >
+            <div className="w-8 h-[2px] bg-slate-900 rounded-full transition-all group-hover:w-10" />
+            <div className="w-5 h-[2px] bg-slate-900 rounded-full transition-all group-hover:w-10" />
+          </button>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
-          <div className="relative z-10 space-y-8 animate-in fade-in slide-in-from-left duration-1000">
-            <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest shadow-sm">
-              <Heart className="size-3 fill-orange-700" />
-              Cooked with Love
+      <section className="relative pt-40 pb-20 md:pt-60 md:pb-32 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid lg:grid-cols-2 gap-20 items-center">
+          <div className="relative z-10 space-y-10 animate-in fade-in slide-in-from-left duration-1000">
+            <div className="inline-flex items-center gap-3 bg-orange-50 text-orange-700 px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.3em] shadow-sm border border-orange-100/50">
+              <Heart className="size-3 fill-orange-700 animate-pulse" />
+              Kitchen Excellence
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 leading-[1.1]">
-              Ghar Ka Khana, <br/>
-              <span className="text-orange-500 italic">Dil Se.</span>
+            <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.95] tracking-tighter">
+              Ghar Ka <br/>
+              <span className="text-orange-500 italic pb-2 inline-block">Khana.</span>
             </h1>
-            <p className="text-xl text-slate-500 leading-relaxed max-w-lg">
-              Maa Ke Haath Wala Swaad, Kiyamaa's Kitchen Ke Saath. Experience the warmth of home-style meals, delivered fresh to your doorstep daily.
+            <p className="text-xl md:text-2xl text-slate-500 leading-relaxed max-w-lg font-medium">
+              Authentic home-style meals, prepared daily with premium ingredients and a mother's touch.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link href="https://wa.me/918340632956" className="bg-emerald-600 text-white hover:bg-emerald-700 px-10 py-5 rounded-2xl text-lg font-bold flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 transition-all hover:-translate-y-2 active:scale-95">
-                <Smartphone className="size-6" />
-                Order on WhatsApp
+            <div className="flex flex-col sm:flex-row gap-6 pt-6">
+              <Link href="https://wa.me/918340632956" className="bg-emerald-600 text-white hover:bg-emerald-700 px-12 py-6 rounded-[2rem] text-lg font-black flex items-center justify-center gap-3 shadow-2xl shadow-emerald-100 transition-all hover:-translate-y-2 active:scale-95 border-b-4 border-emerald-800">
+                <MessageCircle className="size-6" />
+                Book via WhatsApp
               </Link>
-              <Link href="#menu" className="bg-white border-2 border-slate-100 text-slate-800 hover:bg-slate-50 px-10 py-5 rounded-2xl text-lg font-bold flex items-center justify-center gap-3 shadow-sm transition-all hover:border-orange-200">
-                View Today's Menu
+              <Link href="#menu" className="bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 px-12 py-6 rounded-[2rem] text-lg font-black flex items-center justify-center gap-3 shadow-sm transition-all hover:border-orange-500 group">
+                Today's Menu
+                <ArrowRight className="size-5 group-hover:translate-x-2 transition-transform" />
               </Link>
-            </div>
-            <div className="flex items-center gap-4 pt-6 border-t border-slate-100">
-              <div className="flex -space-x-4">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className="size-12 rounded-full border-4 border-white overflow-hidden bg-slate-100">
-                    <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="User" />
-                  </div>
-                ))}
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-800">Joined by 500+ happy foodies</p>
-                <div className="flex text-orange-400">
-                   {[1,2,3,4,5].map(i => <Star key={i} className="size-4 fill-current" />)}
-                </div>
-              </div>
             </div>
           </div>
           <div className="relative animate-in fade-in zoom-in duration-1000 delay-300">
-            <div className="absolute -inset-4 bg-orange-500/10 rounded-[3rem] blur-3xl rotate-12" />
-            <div className="relative bg-white p-4 rounded-[3.5rem] shadow-2xl shadow-orange-200 overflow-hidden border border-orange-100">
-              <div className="relative aspect-[4/5] rounded-[2.5rem] overflow-hidden">
+            <div className="absolute -inset-10 bg-orange-500/10 rounded-full blur-[120px] animate-pulse" />
+            <div className="relative bg-white p-5 rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100 transition-transform duration-1000 hover:scale-[1.02]">
+              <div className="relative aspect-[4/5] rounded-[3rem] overflow-hidden">
                 <Image 
                   src="/images/hero.png" 
                   alt="Delicious Indian Tiffin" 
                   layout="fill" 
                   objectFit="cover"
-                  className="hover:scale-110 transition-transform duration-700"
+                  className="hover:scale-105 transition-transform duration-[2000ms]"
                 />
               </div>
             </div>
-            {/* Floating badges */}
-            <div className="absolute -right-8 top-1/4 bg-white p-5 rounded-2xl shadow-xl animate-bounce space-y-1 z-20">
-              <p className="text-2xl font-black text-orange-500">90/-</p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Starts from</p>
-            </div>
-            <div className="absolute -left-12 bottom-1/4 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-pulse z-20">
-              <div className="size-10 bg-emerald-100 rounded-xl flex items-center justify-center">
-                <CheckCircle2 className="text-emerald-600 size-5" />
-              </div>
-              <div>
-                <p className="text-sm font-bold text-slate-800 tracking-tight">Eco-friendly Packaging</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-24 bg-white">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
-            <h2 className="text-4xl font-black text-slate-900 tracking-tight">Healthier Meals, <br/><span className="text-orange-500">Happier You.</span></h2>
-            <p className="text-slate-500 text-lg font-medium">We bring you the perfect balance of nutrition, taste, and hygiene, just like mom makes.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className={`p-10 rounded-[3rem] bg-rose-50 border border-transparent hover:border-orange-200 transition-all hover:shadow-xl hover:-translate-y-2 group cursor-default`}>
-              <div className="size-16 mb-8 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-500">
-                <Heart className="size-8 text-rose-500" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Ghar Ka Swaad</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">Authentic recipes passed down through generations. No preservatives, just love.</p>
-            </div>
-            <div className={`p-10 rounded-[3rem] bg-amber-50 border border-transparent hover:border-orange-200 transition-all hover:shadow-xl hover:-translate-y-2 group cursor-default`}>
-              <div className="size-16 mb-8 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-500">
-                 <Utensils className="size-8 text-amber-500" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">Fresh Ingredients</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">Handpicked vegetables and premium oils used daily to ensure the highest quality.</p>
-            </div>
-            <div className={`p-10 rounded-[3rem] bg-blue-50 border border-transparent hover:border-orange-200 transition-all hover:shadow-xl hover:-translate-y-2 group cursor-default`}>
-              <div className="size-16 mb-8 bg-white rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-500">
-                 <Clock className="size-8 text-blue-500" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight">On-Time Delivery</h3>
-              <p className="text-slate-500 leading-relaxed font-medium">Reliable doorstep delivery in eco-friendly tiffins, exactly when you need it.</p>
+            
+            {/* Floating Stats */}
+            <div className="absolute -right-10 top-20 bg-white p-6 rounded-3xl shadow-2xl border border-slate-50 animate-bounce delay-700 z-20">
+               <div className="flex items-center gap-3">
+                  <div className="size-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                     <Star className="size-5 text-orange-500 fill-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-xl font-black text-slate-900">4.9/5</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Customer Rating</p>
+                  </div>
+               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it Works Section */}
-      <section id="how-it-works" className="py-24 bg-orange-500 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-400 rounded-full blur-[100px] opacity-50 -mr-48 -mt-48" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-orange-600 rounded-full blur-[100px] opacity-30 -ml-48 -mb-48" />
-        
-        <div className="max-w-7xl mx-auto px-6 relative z-10 text-white">
-           <div className="grid md:grid-cols-2 gap-20 items-center">
-              <div className="space-y-8">
-                 <h2 className="text-4xl md:text-6xl font-black leading-tight tracking-tighter">Everything Hosted on <br/> <span className="text-orange-200">WhatsApp.</span></h2>
-                 <p className="text-xl text-orange-50 opacity-90 leading-relaxed font-medium">No apps, no complex websites. Just a simple "Yes" on WhatsApp to get your meal booked daily.</p>
-                 <div className="space-y-8">
-                    <div className="flex gap-6 group">
-                      <div className="size-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black flex-shrink-0 group-hover:bg-orange-200 group-hover:text-orange-700 transition-colors font-mono">1</div>
-                      <div className="space-y-1 pt-2">
-                        <h4 className="text-xl font-black tracking-tight">Get Daily Prompts</h4>
-                        <p className="text-orange-100 text-base opacity-80 leading-relaxed font-medium">We send you a prompt every morning & evening to ask if you need a tiffin.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-6 group">
-                      <div className="size-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black flex-shrink-0 group-hover:bg-orange-200 group-hover:text-orange-700 transition-colors font-mono">2</div>
-                      <div className="space-y-1 pt-2">
-                        <h4 className="text-xl font-black tracking-tight">Reply with YES/NO</h4>
-                        <p className="text-orange-100 text-base opacity-80 leading-relaxed font-medium">Just reply to the message. No need to open any app or website.</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-6 group">
-                      <div className="size-14 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-2xl font-black flex-shrink-0 group-hover:bg-orange-200 group-hover:text-orange-700 transition-colors font-mono">3</div>
-                      <div className="space-y-1 pt-2">
-                        <h4 className="text-xl font-black tracking-tight">Enjoy Home Food</h4>
-                        <p className="text-orange-100 text-base opacity-80 leading-relaxed font-medium">Your fresh meal arrives at your door. Simple, healthy, and jhakaas!</p>
-                      </div>
+      {/* Menu Section */}
+      <section id="menu" className="py-32 bg-white reveal">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+           <div className="flex flex-col md:flex-row justify-between items-end mb-24 gap-8">
+              <div className="space-y-6 reveal reveal-delay-1">
+                 <span className="text-orange-600 font-black uppercase text-[10px] tracking-[0.5em]">Daily Specials</span>
+                 <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter">Kitchen Menu.</h2>
+              </div>
+              <p className="max-w-md text-slate-500 font-medium text-xl italic reveal reveal-delay-2 border-l-4 border-orange-500 pl-8 py-2">
+                "Experience the warmth of home-style meals, delivered fresh to your doorstep."
+              </p>
+           </div>
+
+           <div className="grid lg:grid-cols-2 gap-20 items-center">
+              <div className="relative reveal reveal-delay-1 group">
+                 <div className="absolute inset-0 bg-slate-900/5 rounded-[4rem] transition-all group-hover:rotate-3" />
+                 <div className="relative bg-white p-4 rounded-[4rem] shadow-2xl border border-slate-50 transition-all group-hover:-rotate-2">
+                    <div className="relative aspect-square rounded-[3.5rem] overflow-hidden">
+                       <Image 
+                         src="/images/thali.png"
+                         alt="Punjabi Thali"
+                         layout="fill"
+                         objectFit="cover"
+                         className="transition-transform duration-[3000ms] group-hover:scale-110"
+                       />
                     </div>
                  </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-[3rem] shadow-2xl relative animate-in zoom-in duration-700">
-                  <div className="flex flex-col gap-4">
-                     <div className="bg-white self-start p-4 rounded-2xl rounded-tl-none shadow-md max-w-[80%] border border-slate-100">
-                        <p className="text-sm font-bold text-orange-600 mb-1 tracking-widest uppercase text-[10px]">Kiyamaa's Kitchen</p>
-                        <p className="text-slate-800 font-medium tracking-tight">Need tiffin for Today Dinner? 🍱<br/><br/>Reply with: YES or NO</p>
-                        <p className="text-[10px] text-slate-400 text-right mt-2 font-bold">09:30 AM</p>
-                     </div>
-                     <div className="bg-emerald-500 self-end p-4 rounded-2xl rounded-tr-none shadow-lg max-w-[50%] animate-in slide-in-from-right duration-1000 delay-500">
-                        <p className="text-white font-black text-lg">YES!</p>
-                        <p className="text-[10px] text-emerald-100 text-right mt-1 font-bold">10:05 AM</p>
-                     </div>
-                     <div className="bg-white self-start p-4 rounded-2xl rounded-tl-none shadow-md max-w-[80%] animate-in slide-in-from-left duration-1000 delay-1000">
-                        <p className="text-slate-800 font-medium tracking-tight">✅ *Confirmed!* Dinner booked for today. Enjoy your meal! 🍱</p>
-                        <p className="text-[10px] text-slate-400 text-right mt-2 font-bold">10:05 AM</p>
-                     </div>
-                  </div>
+
+              <div className="space-y-12 reveal reveal-delay-2">
+                 <div className="bg-[#FAF7F2] p-10 md:p-16 rounded-[4rem] border border-orange-50 space-y-10 hover:shadow-2xl transition-all duration-700">
+                    <div className="space-y-2">
+                       <h3 className="text-5xl font-black text-slate-900 tracking-tighter">Standard Tiffin</h3>
+                       <p className="text-orange-600 font-bold tracking-[0.2em] uppercase text-[10px]">Lunch & Dinner Special</p>
+                    </div>
+                    
+                    <div className="grid sm:grid-cols-2 gap-8">
+                       {[
+                         '4 Butter Roti',
+                         'Premium Basmati Rice',
+                         'Seasonal Veg Sabzi',
+                         'Dal Fry Tadka',
+                         'Fresh Green Salad',
+                         'Mango Pickle'
+                       ].map((item, idx) => (
+                         <div key={idx} className="flex items-center gap-4 text-slate-700 font-black uppercase tracking-widest text-[9px]">
+                            <div className="size-2 bg-emerald-500 rounded-full" /> {item}
+                         </div>
+                       ))}
+                    </div>
+
+                    <div className="pt-10 flex items-center justify-between border-t border-orange-100/50">
+                       <div className="space-y-1">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pricing starts at</p>
+                          <p className="text-4xl font-black text-slate-900 tracking-tighter">₹90 <span className="text-sm text-slate-400">/ meal</span></p>
+                       </div>
+                       <Link href="https://wa.me/918340632956" className="bg-slate-900 text-white px-10 py-5 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-orange-600 transition-all hover:scale-110 active:scale-95 shadow-2xl">Book Now</Link>
+                    </div>
+                 </div>
+
+                 <div className="flex flex-wrap gap-4">
+                    <span className="px-6 py-3 bg-emerald-50 text-emerald-800 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-100">Low Cholesterol</span>
+                    <span className="px-6 py-3 bg-rose-50 text-rose-800 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-100">Eco-Friendly Packaging</span>
+                    <span className="px-6 py-3 bg-amber-50 text-amber-800 rounded-full text-[10px] font-black uppercase tracking-widest border border-amber-100">Daily Fresh Prep</span>
+                 </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-20 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-6 text-center space-y-12">
-          <div className="space-y-4">
-             <div className="flex items-center justify-center gap-3">
-                <Utensils className="text-orange-500 size-8" />
-                <span className="text-3xl font-black tracking-tight">Kiyamaa's Kitchen</span>
-             </div>
-             <p className="text-slate-400 text-lg font-medium">Ghar Ki Rasoi Se, Aapki Thali Tak.</p>
+      {/* Features Section */}
+      <section id="features" className="py-32 bg-[#FAF7F2] reveal">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="max-w-3xl mb-24 space-y-6 reveal reveal-delay-1">
+            <span className="text-orange-600 font-black uppercase text-[10px] tracking-[0.5em]">The Difference</span>
+            <h2 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">Why Choose <br/> Our Kitchen?</h2>
           </div>
-          <div className="flex justify-center gap-6 text-slate-500 uppercase text-xs font-black tracking-[0.4em]">
-             <Link href="#" className="hover:text-orange-500 transition-colors">Instagram</Link>
-             <Link href="#" className="hover:text-orange-500 transition-colors">WhatsApp</Link>
-             <Link href="#" className="hover:text-orange-500 transition-colors">Contact</Link>
+          <div className="grid md:grid-cols-3 gap-10">
+            {[
+              { icon: Heart, color: 'rose', title: 'Home Recipes', desc: 'Every meal follows traditional family recipes passed down through generations.' },
+              { icon: Utensils, color: 'amber', title: 'Local Sourcing', desc: 'We handpick fresh vegetables every morning from local organic markets.' },
+              { icon: Clock, color: 'emerald', title: 'Always On Time', desc: 'Our reliable delivery network ensures your meal arrives fresh and hot.' }
+            ].map((f, i) => (
+              <div key={i} className={`p-12 rounded-[4rem] bg-white border border-slate-50 hover:border-orange-500 transition-all hover:shadow-2xl hover:-translate-y-3 group reveal reveal-delay-${i+1}`}>
+                <div className={`size-20 mb-10 bg-${f.color}-50 rounded-3xl flex items-center justify-center transition-all group-hover:scale-110 group-hover:rotate-12`}>
+                  <f.icon className={`size-10 text-${f.color}-600`} />
+                </div>
+                <h3 className="text-3xl font-black text-slate-900 mb-6 tracking-tight">{f.title}</h3>
+                <p className="text-slate-500 leading-relaxed font-medium text-lg">{f.desc}</p>
+              </div>
+            ))}
           </div>
-          <div className="pt-12 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-6 text-sm text-slate-500 font-medium">
-             <p>© 2026 Kiyamaa's Kitchen. All rights reserved.</p>
-             <div className="flex gap-8">
-                <Link href="#" className="hover:text-white transition-colors underline underline-offset-4 decoration-orange-500/30">Privacy Policy</Link>
-                <Link href="#" className="hover:text-white transition-colors underline underline-offset-4 decoration-orange-500/30">Terms of Service</Link>
-             </div>
-          </div>
+        </div>
+      </section>
+
+      {/* Footer Section */}
+      <footer className="py-32 bg-slate-900 text-white reveal">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+           <div className="grid lg:grid-cols-2 gap-20 items-start mb-32">
+              <div className="space-y-10">
+                 <Link href="/" className="flex items-center gap-3 group">
+                    <div className="size-12 bg-orange-600 rounded-2xl flex items-center justify-center transition-transform group-hover:-rotate-12">
+                       <Utensils className="text-white size-7" />
+                    </div>
+                    <span className="text-4xl font-black tracking-tighter">Kiyamaa's Kitchen</span>
+                 </Link>
+                 <p className="text-2xl text-slate-400 font-medium leading-relaxed max-w-md">
+                   "Ma Ke Haath Wala Swaad, Dil Se Delivered Daily."
+                 </p>
+                 <div className="flex gap-6">
+                    <Link href="#" className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-orange-600 transition-all hover:-translate-y-2"><Camera className="size-6" /></Link>
+                    <Link href="#" className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-blue-600 transition-all hover:-translate-y-2"><Globe className="size-6" /></Link>
+                    <Link href="https://wa.me/918340632956" className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-emerald-600 transition-all hover:-translate-y-2"><MessageCircle className="size-6" /></Link>
+                 </div>
+              </div>
+              
+              <div className="grid sm:grid-cols-2 gap-20">
+                 <div className="space-y-8">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-500">Navigation</h4>
+                    <div className="flex flex-col gap-4 text-slate-400 font-bold text-lg">
+                       <Link href="#features" className="hover:text-white transition-colors">Features</Link>
+                       <Link href="#menu" className="hover:text-white transition-colors">Our Menu</Link>
+                       <Link href="#how-it-works" className="hover:text-white transition-colors">How It Works</Link>
+                    </div>
+                 </div>
+                 <div className="space-y-8">
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-orange-500">Company</h4>
+                    <div className="flex flex-col gap-4 text-slate-400 font-bold text-lg">
+                       <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+                       <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+                       <Link href="/login" className="hover:text-white transition-colors">Staff Portal</Link>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+           <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-10 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+              <p>© 2026 Kiyamaa's Kitchen. All rights reserved.</p>
+              <div className="flex items-center gap-2">
+                 Cooked with <Heart className="size-4 text-rose-500 fill-rose-500" /> for you.
+              </div>
+           </div>
         </div>
       </footer>
     </div>

@@ -22,7 +22,7 @@ async function seed() {
 
   const email = 'admin@tiffin.com';
   const password = 'password123';
-  const name = 'Tiffin Didi';
+  const name = 'Aditya';
 
   const existing = await Admin.findOne({ email });
   if (existing) {

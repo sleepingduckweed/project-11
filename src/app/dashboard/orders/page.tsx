@@ -146,117 +146,116 @@ export default function OrdersPage() {
   const dinnerOrders = orders.filter(o => o.mealType === 'Dinner' || o.mealType === 'Both');
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800">Daily Bookings</h1>
-        <p className="text-slate-500">Manage today's tiffin distribution</p>
+    <div className="space-y-12">
+      <div className="animate-in fade-in slide-in-from-top duration-700">
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Daily Bookings</h1>
+        <p className="text-slate-500 font-medium tracking-tight">Manage today's tiffin distribution and notifications.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Lunch Section */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-emerald-700">
-              <div className="size-3 bg-emerald-500 rounded-full" /> Lunch Orders ({lunchOrders.length})
+            <h2 className="flex items-center gap-3 text-emerald-800 font-black text-xl tracking-tight">
+              <div className="size-3 bg-emerald-500 rounded-full animate-pulse" /> Lunch ({lunchOrders.length})
             </h2>
             <button 
               disabled={lunchOrders.length === 0 || processing === 'Lunch'}
               onClick={() => handleDispatch('Lunch')}
-              className="btn btn-primary btn-sm flex items-center gap-2 text-sm py-1.5"
+              className="px-6 py-2.5 bg-emerald-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 active:scale-95 transition-all shadow-lg shadow-emerald-100 disabled:opacity-30 flex items-center gap-2"
             >
               {processing === 'Lunch' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-              Dispatch All Lunch
+              Dispatch All
             </button>
           </div>
           
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden min-h-[200px]">
+          <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden min-h-[200px] shadow-sm">
              {loading ? (
-                <div className="p-8 text-center text-slate-400"><Loader2 className="animate-spin mx-auto mb-2" /> Loading...</div>
+                <div className="p-16 text-center text-slate-400"><Loader2 className="animate-spin mx-auto mb-2 text-emerald-500" /></div>
              ) : lunchOrders.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">No lunch bookings for today.</div>
+                <div className="p-16 text-center text-slate-400 font-bold tracking-tight">No lunch bookings for today.</div>
              ) : (
-               <table className="w-full text-left">
-                 <tbody className="divide-y divide-slate-100">
+               <div className="divide-y divide-slate-50">
                    {lunchOrders.map(order => (
-                     <tr key={order._id} className="hover:bg-slate-50">
-                       <td className="px-4 py-3 font-medium text-slate-800">{order.userId?.name}</td>
-                       <td className="px-4 py-3 text-sm text-slate-500">{order.userId?.phone}</td>
-                       <td className="px-4 py-3 text-right">
-                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${order.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                           {order.status}
-                         </span>
-                       </td>
-                     </tr>
+                     <div key={order._id} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div>
+                           <p className="font-black text-slate-800">{order.userId?.name}</p>
+                           <p className="text-xs text-slate-400 font-bold">{order.userId?.phone}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${order.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                          {order.status}
+                        </span>
+                     </div>
                    ))}
-                 </tbody>
-               </table>
+               </div>
              )}
           </div>
         </div>
 
         {/* Dinner Section */}
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-orange-700">
-              <div className="size-3 bg-orange-500 rounded-full" /> Dinner Orders ({dinnerOrders.length})
+            <h2 className="flex items-center gap-3 text-orange-800 font-black text-xl tracking-tight">
+              <div className="size-3 bg-orange-500 rounded-full animate-pulse" /> Dinner ({dinnerOrders.length})
             </h2>
             <button 
                disabled={dinnerOrders.length === 0 || processing === 'Dinner'}
                onClick={() => handleDispatch('Dinner')}
-               className="btn bg-orange-600 text-white hover:bg-orange-700 active:scale-95 btn-sm flex items-center gap-2 text-sm py-1.5"
+               className="px-6 py-2.5 bg-orange-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-700 active:scale-95 transition-all shadow-lg shadow-orange-100 disabled:opacity-30 flex items-center gap-2"
             >
               {processing === 'Dinner' ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-              Dispatch All Dinner
+              Dispatch All
             </button>
           </div>
           
-          <div className="bg-white border border-slate-200 rounded-xl overflow-hidden min-h-[200px]">
+          <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden min-h-[200px] shadow-sm">
             {loading ? (
-                <div className="p-8 text-center text-slate-400"><Loader2 className="animate-spin mx-auto mb-2" /> Loading...</div>
+                <div className="p-16 text-center text-slate-400"><Loader2 className="animate-spin mx-auto mb-2 text-orange-500" /></div>
              ) : dinnerOrders.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">No dinner bookings for today.</div>
+                <div className="p-16 text-center text-slate-400 font-bold tracking-tight">No dinner bookings for today.</div>
              ) : (
-               <table className="w-full text-left">
-                 <tbody className="divide-y divide-slate-100">
-                   {dinnerOrders.map(order => (
-                     <tr key={order._id} className="hover:bg-slate-50">
-                       <td className="px-4 py-3 font-medium text-slate-800">{order.userId?.name}</td>
-                       <td className="px-4 py-3 text-sm text-slate-500">{order.userId?.phone}</td>
-                       <td className="px-4 py-3 text-right">
-                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${order.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
+                <div className="divide-y divide-slate-50">
+                    {dinnerOrders.map(order => (
+                      <div key={order._id} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                         <div>
+                            <p className="font-black text-slate-800">{order.userId?.name}</p>
+                            <p className="text-xs text-slate-400 font-bold">{order.userId?.phone}</p>
+                         </div>
+                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${order.status === 'Dispatched' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
                            {order.status}
                          </span>
-                       </td>
-                     </tr>
-                   ))}
-                 </tbody>
-               </table>
+                      </div>
+                    ))}
+                </div>
              )}
           </div>
         </div>
       </div>
 
       {/* Trigger Hub */}
-      <div className="card space-y-4">
-        <div className="flex items-center gap-2">
-          <Send className="size-5 text-emerald-600" />
-          <h2 className="text-lg font-bold">WhatsApp Trigger Hub</h2>
-          <span className="text-xs font-normal text-slate-400 bg-slate-100 px-2 py-0.5 rounded ml-2">Manual Prompts</span>
+      <div className="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+           <div className="space-y-1">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                 <Send className="size-6 text-emerald-600" /> WhatsApp Trigger Hub
+              </h2>
+              <p className="text-slate-500 font-medium">Send manual booking prompts for upcoming slots.</p>
+           </div>
+           <span className="text-[10px] w-fit font-black text-emerald-700 bg-emerald-50 px-4 py-2 rounded-full uppercase tracking-[0.2em] shadow-sm border border-emerald-100">Active System</span>
         </div>
-        <p className="text-sm text-slate-500">Send a booking prompt to all active users for upcoming slots.</p>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {mounted && getTriggerSlots().map((slot, index) => (
             <button
               key={index}
               onClick={() => handleManualBroadcast(slot)}
               disabled={!!processing}
-              className="flex flex-col items-center justify-center p-4 border border-slate-200 rounded-xl hover:border-emerald-500 hover:bg-emerald-50 transition-all group"
+              className="flex flex-col items-center justify-center p-8 bg-slate-50 border border-transparent rounded-[2.5rem] hover:border-emerald-500 hover:bg-white hover:shadow-xl hover:-translate-y-2 transition-all group active:scale-95"
             >
-              <span className="text-xs font-bold text-slate-400 group-hover:text-emerald-600 uppercase tracking-wider">{slot.dayLabel}</span>
-              <span className="text-lg font-bold text-slate-800">{slot.mealType}</span>
-              <span className="text-[10px] text-slate-500">{slot.dateStr}</span>
-              {processing === slot.label && <Loader2 className="size-4 animate-spin mt-2" />}
+              <span className="text-[10px] font-black text-slate-400 group-hover:text-emerald-600 uppercase tracking-[0.2em] mb-2 transition-colors">{slot.dayLabel}</span>
+              <span className="text-xl font-black text-slate-800">{slot.mealType}</span>
+              <span className="text-xs font-bold text-slate-400 mt-1">{slot.dateStr}</span>
+              {processing === slot.label && <Loader2 className="size-5 animate-spin mt-4 text-emerald-500" />}
             </button>
           ))}
         </div>
