@@ -1,20 +1,21 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { MealType, OrderStatus } from '@/types/enums';
 
 export interface IOrder extends Document {
   userId: mongoose.Types.ObjectId;
   bookingDate: Date;
-  mealType: 'Lunch' | 'Dinner' | 'Both' | 'None';
+  mealType: MealType;
   tiffinsDeducted: number;
-  status: 'Booked' | 'Dispatched' | 'Delivered' | 'Cancelled';
+  status: OrderStatus;
   createdAt: Date;
 }
 
 const OrderSchema: Schema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'UserV2', required: true },
   bookingDate: { type: Date, required: true },
-  mealType: { type: String, enum: ['Lunch', 'Dinner', 'Both', 'None'], required: true },
+  mealType: { type: String, enum: Object.values(MealType), required: true },
   tiffinsDeducted: { type: Number, default: 0 },
-  status: { type: String, enum: ['Booked', 'Dispatched', 'Delivered', 'Cancelled'], default: 'Booked' },
+  status: { type: String, enum: Object.values(OrderStatus), default: OrderStatus.Booked },
   createdAt: { type: Date, default: Date.now },
 });
 

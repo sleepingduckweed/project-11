@@ -10,8 +10,17 @@ export async function POST(req: Request) {
 
   const { slotLabel, slotDate, userIds } = await req.json();
   await connectToDatabase();
-  
-  let query: any = { isActive: true, tiffinBalance: { $gte: 1 } };
+
+  // Determine mealType from slotLabel
+  let mealType: 'Lunch' | 'Dinner' | 'Both' | 'Breakfast' = 'Both';
+  if (slotLabel.toLowerCase().includes('dinner')) mealType = 'Dinner';
+  else if (slotLabel.toLowerCase().includes('lunch')) mealType = 'Lunch';
+  else if (slotLabel.toLowerCase().includes('breakfast')) mealType = 'Breakfast';
+
+  // Build query: filter by the relevant balance bucket
+  const balanceField = mealType === 'Breakfast' ? 'breakfastBalance' : 
+                       mealType === 'Dinner' ? 'dinnerBalance' : 'lunchBalance';
+  let query: any = { isActive: true, [balanceField]: { $gte: 1 } };
   if (userIds && Array.isArray(userIds) && userIds.length > 0) {
     query._id = { $in: userIds };
   }
@@ -19,21 +28,18 @@ export async function POST(req: Request) {
   const users = await User.find(query);
 
   const dateStr = new Date(slotDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-  
-  // Determine mealType from slotLabel
-  let mealType: 'Lunch' | 'Dinner' | 'Both' = 'Both';
-  if (slotLabel.toLowerCase().includes('dinner')) mealType = 'Dinner';
-  else if (slotLabel.toLowerCase().includes('lunch')) mealType = 'Lunch';
 
   let sentCount = 0;
   for (const user of users) {
     try {
-      const message = `*Need tiffin for ${slotLabel} (${dateStr})?* 🍱\n\nReply with: YES or NO\n\nYour current balance: ${user.tiffinBalance} tiffin(s)${user.tiffinBalance < 2 ? '\n\n⚠️ *Low Balance!* Please recharge with UPI ID: kiyamax@upi' : ''}`;
+      const balance = (user as any)[balanceField] || 0;
+      const isLow = balance < 2;
+      const message = `*Need tiffin for ${slotLabel} (${dateStr})?* 🍱\n\nReply with: YES or NO\n\n🌅 Breakfast: *${(user as any).breakfastBalance || 0}* | ☀️ Lunch: *${(user as any).lunchBalance || 0}* | 🌙 Dinner: *${(user as any).dinnerBalance || 0}*${isLow ? '\n\n⚠️ *Low Balance!* Please recharge soon.' : ''}`;
       
       await sendWhatsAppMessage(user.phone, message);
       
       // Save pending state for YES/NO handling in webhook
-      user.pendingBroadcast = {
+      (user as any).pendingBroadcast = {
         slotLabel,
         slotDate: new Date(slotDate),
         mealType

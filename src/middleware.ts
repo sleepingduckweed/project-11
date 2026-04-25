@@ -6,8 +6,8 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = req.nextUrl;
 
-  // 1. If user is authenticated and tries to access login or landing page, redirect to dashboard
-  if (token && (pathname === "/login" || pathname === "/")) {
+  // 1. If user is authenticated and tries to access login page, redirect to dashboard
+  if (token && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 

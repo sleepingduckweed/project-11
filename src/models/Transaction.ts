@@ -1,16 +1,19 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { TransactionType, MealType } from '@/types/enums';
 
 export interface ITransaction extends Document {
   userId: mongoose.Types.ObjectId;
-  type: 'Credit' | 'Debit';
+  type: TransactionType;
+  mealType?: MealType;
   tiffinCount: number;
   reason: string;
   createdAt: Date;
 }
 
 const TransactionSchema: Schema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['Credit', 'Debit'], required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'UserV2', required: true },
+  type: { type: String, enum: Object.values(TransactionType), required: true },
+  mealType: { type: String, enum: Object.values(MealType), required: false },
   tiffinCount: { type: Number, required: true },
   reason: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },

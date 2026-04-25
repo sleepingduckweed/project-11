@@ -17,11 +17,12 @@ export async function POST(req: Request) {
 
   let sentCount = 0;
   for (const user of users) {
-    if (user.tiffinBalance >= 1) {
+    const totalBalance = ((user as any).lunchBalance || 0) + ((user as any).dinnerBalance || 0) + ((user as any).breakfastBalance || 0);
+    if (totalBalance >= 1) {
       await sendWhatsAppMessage(user.phone, message);
       sentCount++;
     } else {
-      await sendWhatsAppMessage(user.phone, "Reminder: Your balance is 0. Please recharge to book your next tiffin!");
+      await sendWhatsAppMessage(user.phone, "⚠️ Reminder: Your tiffin balance is 0. Please recharge to book your next meal!");
     }
   }
 

@@ -72,7 +72,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <div className={`min-h-screen bg-[#fdfaf6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-900 overflow-x-hidden ${isMenuOpen ? 'h-screen overflow-hidden' : ''}`}>
+    <div className={`min-h-screen bg-[#fdfaf6] text-slate-900 font-sans selection:bg-orange-100 selection:text-orange-900 ${isMenuOpen ? 'h-screen overflow-hidden' : 'overflow-x-clip'}`}>
 
       <style jsx global>{`
         .reveal {

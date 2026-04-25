@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, LayoutDashboard, ClipboardList, LogOut, Tally5 } from 'lucide-react';
+import { Users, LayoutDashboard, ClipboardList, LogOut, Utensils } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 export default function DashboardLayout({
@@ -15,26 +15,27 @@ export default function DashboardLayout({
   const links = [
     { href: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { href: '/dashboard/users', label: 'Users', icon: Users },
+    { href: '/dashboard/bookings', label: 'Bookings', icon: Utensils },
     { href: '/dashboard/orders', label: 'Orders', icon: ClipboardList },
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen bg-[#fdfaf6] overflow-hidden selection:bg-orange-100 selection:text-orange-900">
       {/* Mobile Header */}
-      <header className="md:hidden bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
-        <h1 className="text-xl font-black text-emerald-600 flex items-center gap-2">
-           <Tally5 className="size-6" /> Kiyamaa
+      <header className="md:hidden bg-[#fdfaf6] border-b border-orange-100/50 px-6 py-4 flex items-center justify-between sticky top-0 z-30">
+        <h1 className="text-xl font-black text-slate-900 flex items-center gap-2 tracking-tighter">
+           <div className="size-8 bg-orange-600 rounded-xl flex items-center justify-center"><Utensils className="size-4 text-white" /></div> Kiymaa's Kitchen
         </h1>
-        <button onClick={() => signOut()} className="p-2 text-slate-400 hover:text-red-500 transition-colors">
+        <button onClick={() => signOut()} className="p-2 text-slate-400 hover:text-orange-600 transition-colors">
            <LogOut className="size-5" />
         </button>
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col shadow-sm">
+      <aside className="hidden md:flex w-64 bg-[#fdfaf6] border-r border-orange-100/50 flex-col">
         <div className="p-8">
-          <h1 className="text-xl font-black text-emerald-600 flex items-center gap-3">
-            <Tally5 className="size-8" /> Kiyamaa's Kitchen
+          <h1 className="text-xl font-black text-slate-900 flex items-center gap-3 tracking-tighter">
+            <div className="size-10 bg-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-100"><Utensils className="size-5 text-white" /></div> Kiymaa's
           </h1>
         </div>
 
@@ -46,10 +47,10 @@ export default function DashboardLayout({
               <Link
                 key={link.href}
                 href={link.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${
+                className={`flex items-center gap-3 px-5 py-4 rounded-3xl font-black tracking-tight text-sm uppercase transition-all ${
                   active
-                    ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                    ? 'bg-slate-900 text-white shadow-2xl'
+                    : 'text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm'
                 }`}
               >
                 <Icon className="size-5" />
@@ -59,10 +60,10 @@ export default function DashboardLayout({
           })}
         </nav>
 
-        <div className="p-6 border-t border-slate-100">
+        <div className="p-6 border-t border-orange-100/50">
           <button
             onClick={() => signOut()}
-            className="flex items-center gap-3 w-full px-4 py-3 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all font-bold"
+            className="flex items-center gap-3 w-full px-5 py-4 text-slate-500 hover:text-white hover:bg-orange-600 rounded-3xl transition-all font-black tracking-tight text-sm uppercase"
           >
             <LogOut className="size-5" />
             Logout
@@ -78,7 +79,7 @@ export default function DashboardLayout({
       </main>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex items-center justify-between z-40 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] rounded-t-[2rem]">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-orange-100/50 px-6 py-3 flex items-center justify-between z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] rounded-t-[2.5rem]">
         {links.map((link) => {
           const Icon = link.icon;
           const active = pathname === link.href;
@@ -88,14 +89,14 @@ export default function DashboardLayout({
               href={link.href}
               className={`flex flex-col items-center gap-1.5 transition-all p-2 rounded-2xl active:scale-90 ${
                 active
-                  ? 'text-emerald-600'
+                  ? 'text-orange-600'
                   : 'text-slate-400'
               }`}
             >
-              <div className={`p-2 rounded-xl transition-colors ${active ? 'bg-emerald-50' : ''}`}>
+              <div className={`p-3 rounded-2xl transition-colors ${active ? 'bg-orange-50' : ''}`}>
                 <Icon className="size-6" strokeWidth={active ? 2.5 : 2} />
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest transition-opacity ${active ? 'opacity-100' : 'opacity-50'}`}>
+              <span className={`text-[9px] font-black uppercase tracking-[0.2em] transition-all ${active ? 'opacity-100 text-orange-600' : 'opacity-50 text-slate-400'}`}>
                 {link.label}
               </span>
             </Link>

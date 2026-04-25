@@ -4,8 +4,7 @@ import User from '@/models/User';
 import Order from '@/models/Order';
 import Transaction from '@/models/Transaction';
 import { sendWhatsAppMessage } from '@/lib/whatsapp';
-
-const MEAL_PRICE = 90;
+import { MealType, OrderStatus, TransactionType } from '@/types/enums';
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -25,19 +24,26 @@ export async function POST(req: Request) {
 
   if (body.object === 'whatsapp_business_account' && body.entry?.[0]?.changes?.[0]?.value?.messages?.[0]) {
     const message = body.entry[0].changes[0].value.messages[0];
-    const from = message.from; // Phone number
+    const from = message.from;
     const text = message.text?.body?.trim().toUpperCase();
+
+    console.info(`Incoming WhatsApp from ${from}: "${text}"`);
 
     if (!text) return NextResponse.json({ status: 'ok' });
 
     await connectToDatabase();
-    let user = await User.findOne({ phone: from });
+    
+    let user = await User.findOne({ 
+      $or: [
+        { phone: from }, 
+        { phone: `+${from}` },
+        { phone: from.replace(/^\+/, '') }
+      ] 
+    });
 
     if (!user) {
-      // For V1, maybe we auto-create or ask them to contact the provider
-      // return NextResponse.json({ status: 'ok' });
-      // Let's assume the provider adds them first.
-      await sendWhatsAppMessage(from, "Hi! It seems you're not registered. Please contact Kiyamaa's Kitchen to register.");
+      console.warn(`Unregistered user messaged: ${from}`);
+      await sendWhatsAppMessage(from, "Hi! It seems you're not registered with Kiyamaa's Kitchen. Please contact the admin to register your number.");
       return NextResponse.json({ status: 'ok' });
     }
 
@@ -56,11 +62,57 @@ export async function POST(req: Request) {
     } else if (text === 'HELP') {
       await handleHelp(user);
     } else {
-      await sendWhatsAppMessage(from, "I didn't quite get that. Reply with YES/NO to book, or HELP for more commands.");
+      await handleFallback(user);
     }
   }
 
   return NextResponse.json({ status: 'ok' });
+}
+
+// Helper: get balance for a specific meal type
+function getBalanceForMeal(user: any, mealType: string): number {
+  if (mealType === MealType.Breakfast) return user.breakfastBalance || 0;
+  if (mealType === MealType.Dinner) return user.dinnerBalance || 0;
+  return user.lunchBalance || 0; // Default to lunch
+}
+
+// Helper: format all balances for display
+function formatBalanceSummary(user: any): string {
+  const b = user.breakfastBalance || 0;
+  const l = user.lunchBalance || 0;
+  const d = user.dinnerBalance || 0;
+  return `🌅 Breakfast: *${b}* | ☀️ Lunch: *${l}* | 🌙 Dinner: *${d}*`;
+}
+
+async function handleFallback(user: any) {
+  let message = `🍱 *Kiymaa's Kitchen*\n\nYour Balances:\n${formatBalanceSummary(user)}\n\n`;
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const bookings = await Order.find({ 
+    userId: user._id, 
+    bookingDate: { $gte: today },
+    status: OrderStatus.Booked 
+  }).sort({ bookingDate: 1 });
+
+  if (bookings.length > 0) {
+    message += `*Current Bookings:*\n`;
+    bookings.forEach((b: any) => {
+      const dateStr = new Date(b.bookingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+      message += `• ${dateStr} - ${b.mealType}\n`;
+    });
+    message += `\n`;
+  } else {
+    message += `No active bookings found.\n\n`;
+  }
+
+  if (user.pendingBroadcast) {
+    message += `⚠️ *Action Required:*\nNeed tiffin for ${user.pendingBroadcast.slotLabel}?\nReply with *YES* or *NO*\n\n`;
+  }
+
+  message += `*Commands:*\nBAL - Check Balance\nHISTORY - Last 5 orders\nSKIP - Skip today\nHELP - Show all options`;
+
+  await sendWhatsAppMessage(user.phone, message);
 }
 
 async function handleYesResponse(user: any) {
@@ -70,14 +122,29 @@ async function handleYesResponse(user: any) {
   }
 
   const { slotLabel, slotDate, mealType } = user.pendingBroadcast;
-  const tiffins = (mealType === 'Both') ? 2 : 1;
 
-  if (user.tiffinBalance < tiffins) {
-    await sendWhatsAppMessage(user.phone, `Insufficient balance (${user.tiffinBalance} tiffins). Please recharge via UPI ID: kiyamax@upi and send a screenshot to confirm.`);
+  // Determine balance bucket and deduction
+  const bucketMap: Record<string, { field: string; label: string }> = {
+    [MealType.Breakfast]: { field: 'breakfastBalance', label: 'Breakfast' },
+    [MealType.Lunch]: { field: 'lunchBalance', label: 'Lunch' },
+    [MealType.Dinner]: { field: 'dinnerBalance', label: 'Dinner' },
+    ['Both']: { field: 'lunchBalance', label: 'Lunch & Dinner' }, // checks both
+  };
+
+  const isBoth = mealType === 'Both';
+  const lunchBalance = user.lunchBalance || 0;
+  const dinnerBalance = user.dinnerBalance || 0;
+  const targetBalance = isBoth ? Math.min(lunchBalance, dinnerBalance) : getBalanceForMeal(user, mealType);
+  const tiffins = isBoth ? 2 : 1;
+
+  if (isBoth && (lunchBalance < 1 || dinnerBalance < 1)) {
+    await sendWhatsAppMessage(user.phone, `Insufficient balance for ${mealType}.\n${formatBalanceSummary(user)}\nPlease recharge to continue.`);
+    return;
+  } else if (!isBoth && targetBalance < 1) {
+    await sendWhatsAppMessage(user.phone, `Insufficient ${mealType} balance.\n${formatBalanceSummary(user)}\nPlease recharge to continue.`);
     return;
   }
 
-  // Check if booking already exists for this date and meal
   const checkDate = new Date(slotDate);
   checkDate.setHours(0,0,0,0);
   
@@ -94,29 +161,37 @@ async function handleYesResponse(user: any) {
     return;
   }
 
-  // Deduct balance
-  user.tiffinBalance -= tiffins;
-  user.pendingBroadcast = undefined; // Clear after success
+  // Deduct from correct buckets
+  if (isBoth) {
+    user.lunchBalance = lunchBalance - 1;
+    user.dinnerBalance = dinnerBalance - 1;
+  } else if (mealType === MealType.Breakfast) {
+    user.breakfastBalance = (user.breakfastBalance || 0) - 1;
+  } else if (mealType === MealType.Lunch) {
+    user.lunchBalance = lunchBalance - 1;
+  } else if (mealType === MealType.Dinner) {
+    user.dinnerBalance = dinnerBalance - 1;
+  }
+  user.pendingBroadcast = undefined;
   await user.save();
 
-  // Create Order
   await Order.create({
     userId: user._id,
     bookingDate: checkDate,
     mealType,
     tiffinsDeducted: tiffins,
-    status: 'Booked'
+    status: OrderStatus.Booked
   });
 
-  // Create Transaction
   await Transaction.create({
     userId: user._id,
-    type: 'Debit',
+    type: TransactionType.Debit,
     tiffinCount: tiffins,
+    mealType,
     reason: `Prompt: ${slotLabel}`
   });
 
-  await sendWhatsAppMessage(user.phone, `✅ *Confirmed!* ${mealType} booked for ${new Date(slotDate).toLocaleDateString()}.\nBalance: ${user.tiffinBalance} tiffins.\n\nThank you! 🍱`);
+  await sendWhatsAppMessage(user.phone, `✅ *Confirmed!* ${mealType} booked for ${new Date(slotDate).toLocaleDateString()}.\n\nUpdated balances:\n${formatBalanceSummary(user)}\n\nThank you! 🍱`);
 }
 
 async function handleNoResponse(user: any) {
@@ -132,10 +207,10 @@ async function handleNoResponse(user: any) {
 
 async function handleBooking(user: any, choice: string) {
   let tiffins = 0;
-  let mealType: 'Lunch' | 'Dinner' | 'Both' | 'None' = 'None';
+  let mealType: string = 'None';
   
-  if (choice === '1') { tiffins = 1; mealType = 'Lunch'; }
-  else if (choice === '2') { tiffins = 1; mealType = 'Dinner'; }
+  if (choice === '1') { tiffins = 1; mealType = MealType.Lunch; }
+  else if (choice === '2') { tiffins = 1; mealType = MealType.Dinner; }
   else if (choice === '3') { tiffins = 2; mealType = 'Both'; }
   else if (choice === '0') { tiffins = 0; mealType = 'None'; }
 
@@ -144,12 +219,18 @@ async function handleBooking(user: any, choice: string) {
     return;
   }
 
-  if (user.tiffinBalance < tiffins) {
-    await sendWhatsAppMessage(user.phone, `Insufficient balance. Your current balance is ${user.tiffinBalance} tiffins. Please recharge to book meals.`);
+  const isBoth = mealType === 'Both';
+  const lunchBalance = user.lunchBalance || 0;
+  const dinnerBalance = user.dinnerBalance || 0;
+
+  if (isBoth && (lunchBalance < 1 || dinnerBalance < 1)) {
+    await sendWhatsAppMessage(user.phone, `Insufficient balance for ${mealType}.\n${formatBalanceSummary(user)}\nPlease recharge to book meals.`);
+    return;
+  } else if (!isBoth && getBalanceForMeal(user, mealType) < 1) {
+    await sendWhatsAppMessage(user.phone, `Insufficient ${mealType} balance.\n${formatBalanceSummary(user)}\nPlease recharge to book meals.`);
     return;
   }
 
-  // Check if booking already exists for today
   const today = new Date();
   today.setHours(0,0,0,0);
   
@@ -159,37 +240,46 @@ async function handleBooking(user: any, choice: string) {
     return;
   }
 
-  // Deduct balance
-  user.tiffinBalance -= tiffins;
+  // Deduct from correct buckets
+  if (isBoth) {
+    user.lunchBalance = lunchBalance - 1;
+    user.dinnerBalance = dinnerBalance - 1;
+  } else if (mealType === MealType.Breakfast) {
+    user.breakfastBalance = (user.breakfastBalance || 0) - 1;
+  } else if (mealType === MealType.Lunch) {
+    user.lunchBalance = lunchBalance - 1;
+  } else if (mealType === MealType.Dinner) {
+    user.dinnerBalance = dinnerBalance - 1;
+  }
   await user.save();
 
-  // Create Order
   await Order.create({
     userId: user._id,
     bookingDate: today,
     mealType,
     tiffinsDeducted: tiffins,
-    status: 'Booked'
+    status: OrderStatus.Booked
   });
 
-  // Create Transaction
   await Transaction.create({
     userId: user._id,
-    type: 'Debit',
+    type: TransactionType.Debit,
     tiffinCount: tiffins,
+    mealType,
     reason: mealType
   });
 
-  await sendWhatsAppMessage(user.phone, `Confirmed: ${mealType} booked for today.\n${tiffins} tiffin(s) deducted.\nRemaining balance: ${user.tiffinBalance} tiffins`);
+  const updatedBalances = formatBalanceSummary(user);
+  await sendWhatsAppMessage(user.phone, `Confirmed: ${mealType} booked for today.\n${tiffins} tiffin(s) deducted.\n\nRemaining:\n${updatedBalances}`);
 
   // Low balance reminder
-  if (user.tiffinBalance < 2) {
-     await sendWhatsAppMessage(user.phone, "Your balance is low. Please recharge soon to continue uninterrupted tiffin service.");
+  if ((user.lunchBalance || 0) < 2 || (user.dinnerBalance || 0) < 2) {
+     await sendWhatsAppMessage(user.phone, "⚠️ Your balance is running low. Please recharge soon to continue uninterrupted tiffin service.");
   }
 }
 
 async function handleBalance(user: any) {
-  await sendWhatsAppMessage(user.phone, `Current balance: ${user.tiffinBalance} tiffins`);
+  await sendWhatsAppMessage(user.phone, `🍱 *Your Tiffin Balances:*\n\n${formatBalanceSummary(user)}`);
 }
 
 async function handleHistory(user: any) {
@@ -200,7 +290,7 @@ async function handleHistory(user: any) {
   }
 
   let historyMsg = "Last bookings:\n\n";
-  lastOrders.forEach(order => {
+  lastOrders.forEach((order: any) => {
     const dateStr = new Date(order.bookingDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
     historyMsg += `${dateStr} - ${order.mealType} (${order.tiffinsDeducted})\n`;
   });
@@ -209,8 +299,6 @@ async function handleHistory(user: any) {
 }
 
 async function handleSkip(user: any) {
-    // In V1, skip might just mean don't book if prompted, or cancel today's booking if allowed.
-    // For now, let's just confirm skipping.
     await sendWhatsAppMessage(user.phone, "Got it! Skipping bookings for today.");
 }
 
